@@ -1,0 +1,169 @@
+//SENDSMS:
+using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI. WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Linq;
+using System.IO;
+using System.Net;
+using AjaxControlToolkit;
+using System.Web.Services;
+using System.Web.Script.Services;
+using System.Collections.Generic;
+public partial class Default2 : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+    }
+    protected void Button2_Click(object sender, EventArgs e)
+    {
+        if (opt_id.Checked == true)
+        {
+            try
+            {
+                   SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["con"].ConnectionString);
+                   SqlDataAdapter da = new SqlDataAdapter("select * from tbl_contact where uid='" + uid.Text + "'", con);
+                DataSet ds = new DataSet();
+                da.Fill(ds);
+                if (ds.Tables[0].Rows.Count <= 0)
+                {
+                    lblMsg.Visible = true;
+                    lblMsg.Text = "NO RECORDS AVAILABLE!";
+                }
+                GridView1.DataSource = ds;
+                GridView1.DataBind();
+                //add to ph no list
+                SqlConnection con1 = new SqlConnection(ConfigurationManager.ConnectionStrings["con"].ConnectionString);
+                try
+                {
+                    nos.Items.Clear();
+                    con1.Open();
+                    SqlCommand cmd1 = new SqlCommand("select mobileno as thisno from tbl_contact where uid='" + uid.Text + "'", con1);
+                    SqlDataReader r1 = cmd1.ExecuteReader();
+                    if (r1.Read())
+                    {
+                        string ino = Convert.ToString(r1["thisno"]);
+                        nos.Items.Add(ino);
+                        //id.Text = ino_int.ToString();
+                    }
+                    r1.Close();
+                }
+                catch (Exception ex)
+                {
+                    lblMsg.Visible = true;
+                    lblMsg.Text = "Error --> " + ex.Message;
+                }
+                finally
+                {
+                    con1.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                lblMsg.Visible = true;
+                lblMsg.Text = "Error --> " + ex.Message;
+            }
+
+        }        
+            else
+            {
+                SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["con"].ConnectionString);
+                try
+                {
+                    SqlDataAdapter da = new SqlDataAdapter("select * from tbl_contact", con);
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    if (ds.Tables[0].Rows.Count <= 0)
+                    {
+                        lblMsg.Visible = true;
+                        lblMsg.Text = "NO RECORDS AVAILABLE!";
+                    }
+                    GridView1.Visible = true;
+                    GridView1.DataSource = ds;
+                    GridView1.DataBind();
+                    //add to ph no list
+                    SqlConnection con1 = new SqlConnection(ConfigurationManager.ConnectionStrings["con"].ConnectionString);
+                    try
+                    {
+                        nos.Items.Clear();
+                        con1.Open();
+                        SqlCommand cmd1 = new SqlCommand("select mobileno as thisno from tbl_contact", con1);
+                        SqlDataReader r1 = cmd1.ExecuteReader();
+                        while (r1.Read())
+                        {
+                            string ino = Convert.ToString(r1["thisno"]);
+                            nos.Items.Add(ino);
+                            //id.Text = ino_int.ToString();
+                        }
+                        r1.Close();
+
+                    }
+                    catch (Exception ex)
+                    {
+                        lblMsg.Visible = true;
+                        lblMsg.Text = "Error --> " + ex.Message;
+                    }
+                    finally
+                    {
+                        con1.Close();
+                    }
+
+             
+   }
+                catch (Exception ex)
+                {
+                    lblMsg.Visible = true;
+                    lblMsg.Text = "Error --> " + ex.Message;
+                }
+
+
+            }
+        Label3.Visible = true;
+        nos.Visible = true;
+        //msg.Visible = true;
+        Button3.Visible = true;
+    }  
+
+    protected void Button3_Click(object sender, System.EventArgs e)
+    {
+        string li = mobileno;
+        string msg = "New product Add" + " @ " + DateTime.Now.ToString();
+        
+        {
+            WebClient client = new WebClient();
+            //2020
+            string baseurl = "http://bulksms.mysmsmantra.com:8080/WebSMS/SMSAPI.jsp?username=heresenthil&password=1335240628&sendername=projil&mobileno=" + li + "&message=" + msg + "&route=A";
+
+            Stream data = client.OpenRead(baseurl);
+            StreamReader reader = new StreamReader(data);
+            string s = reader.ReadToEnd();
+            data.Close();
+            reader.Close();
+            lblMsg1.Visible = true;
+
+           // lblMsg1.Text = s;
+            lblMsg1.Text = "New product Add" + " @ " + DateTime.Now.ToString();
+        }
+        try
+        {
+            lblMsg1.Visible = true;
+        }
+        catch (Exception ex)
+        {
+            lblMsg1.Visible = true;
+           
+ lblMsg1.Text = "Error sms --> " + ex.Message;
+        }
+    }
+
+    public string mobileno { get; set; }
+}

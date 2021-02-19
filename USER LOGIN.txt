@@ -1,0 +1,67 @@
+
+//USER LOGIN:
+using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Linq;
+using System.Data.SqlClient;
+using System.IO;
+using System.Net;
+using System.Net.Mail;
+public partial class Default2 : System.Web.UI.Page
+{
+    static SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["con"].ConnectionString);
+    SqlDataAdapter da;
+    DataSet ds;
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        Username.Focus();
+        if (con.State == ConnectionState.Closed)
+        {
+            con.Open();
+        }
+    }
+    protected void LoginButton1_Click(object sender, EventArgs e)
+    {
+        if (Username.Text != "" && Password.Text != "")
+        {
+            da = new SqlDataAdapter("select count(*) from tbl_login where uname='" + Username.Text + "' and password='" + Password.Text + "' and status='Activate' ", con);
+            int n = Convert.ToInt32(da.SelectCommand.ExecuteScalar());
+            if (n == 1)
+            {
+                da = new SqlDataAdapter("select uid from tbl_login where uname='" + Username.Text + "' and password='" + Password.Text + "' ", con);
+                ds = new DataSet();
+                da.Fill(ds, "tbl_login");
+                if (ds.Tables["tbl_login"].Rows.Count > 0 && ds.Tables.Count > 0)
+                {
+                    Session.Add("uid", ds.Tables["tbl_login"].Rows[0][0].ToString());
+                    Response.Redirect("CustomerProfile.aspx");
+                }
+                else
+                {
+                    Label1.Text = "Invalid userid and password.";
+                }
+            }
+            else
+            {
+                Label1.Text = "Invalid userid and password..";
+                Username.Text = "";
+            }
+        }
+    }
+    protected void Button2_Click(object sender, EventArgs e)
+    {
+        Username.Text = "";
+        Password.Text = "";
+    }
+    
+}
+
